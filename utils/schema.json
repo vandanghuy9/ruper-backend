@@ -1,0 +1,87 @@
+
+    {
+        "product": {
+          "name": "string",
+          "description": "string",
+          "parent": "string, đây là category lớn của sản phẩm, vd: parent: Furniture, children:[ sofa, stool, ]",
+          "children": "string, đây là category chính của sản phẩm vd: sofa",
+          "image-url": "link ảnh gioi thieu",
+          "original_Price":"gia goc",
+          "discount": "so luong giam gia",
+          "price":"gia",
+          "stocks":[
+            {
+                "size":"array string size có thể S, M, L, có thể là số 39,40,41",
+                "color": "array string",
+                "material": "string - chất liệu",
+                "quantity": 100,
+                "sku":"string",
+                "image-url": "link ảnh"
+            }, 
+            { 
+                "size":"S",
+                "color": "Green",
+                "material": "Scarlet",
+                "quantity": 100,
+                "sku":"SW120",
+                "image-url":"https://i.postimg.cc/nLQGp8k6/Igloo-Container-Vanilla-1000-Ml.jpg"
+            }
+          ],
+          "tag":["List các tag của sản phẩm"]
+        },
+        "user":{
+            "name":"string",
+            "password":"string",
+            "email":"string"
+        },
+        "category":{
+            "parent": "string, đây là category lớn của sản phẩm, vd: parent: chair, children:[ sofa, stool, ]",
+            "children":"array string",
+            "vdu":{
+                "parent":["Dining and kitchen","Furniture", "Home Decor", "Lighting", "Office", "Outdoor", "Life style"],
+                "children":"array string"
+            }
+        },
+        "order":{
+            "user":"luu id nguoi dung",
+            "cart": [{}],
+            "firstName":"string, required",
+            "lastName":"string, required",
+            "companyName":"string",
+            "country":"string, required",
+            "address":"string, required",
+            "apartment":"string, optional",
+            "city":"string, required",
+            "zipCode":"string, required",
+            "phone":"string, required",
+            "email":"string, required",
+            "orderNote":"string"
+       },
+       "blog":{
+        "id":"string",
+        "title":"string",
+        "content":"text",
+        "quote":"text",
+        "parent":"string, đây là category lớn của sản phẩm, vd: parent: chair, children:[ sofa, stool, ]",
+        "children":"array string",
+        "previous_blog_id":"string",
+        "next_blog_id":"string",
+        "media":{
+            "id":"string",
+            "media_link":"string",
+            "media_type":"string (img, vid)"
+        }, 
+        "comment":{
+            "id":"string",
+            "username":"string",
+            "email":"string",
+            "content":"text",
+            "timestamp":"true"
+        },
+        "timestamp":"true"
+       },
+       "newsleter":{
+            "email":"string"
+       }
+        
+    }
