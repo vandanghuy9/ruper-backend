@@ -1,0 +1,3 @@
+- Dán đường link mongodb vào BASE_URL trong file .env
+- chay file seeder bằng câu lệnh : node seeder.js
+- Cài đặt package bằng câu lệnh: npm i
