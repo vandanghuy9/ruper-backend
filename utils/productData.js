@@ -86,6 +86,27 @@ const productData = [
       },
     ],
   },
+  {
+    name: "Bora Armchair",
+    description:
+      "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dicta ad culpa quas nam minima odit, amet autem, iure harum nisi assumenda vitae ut maxime, id porro veritatis similique? Blanditiis, obcaecati",
+    parent: "Furniture",
+    children: "Chair",
+    imageUrl: ["/product/9.jpg", "/product/9-2.jpg", "/product/9-3.jpg"],
+    originalPrice: 100,
+    discount: 10,
+    price: 90,
+    stocks: [
+      {
+        size: ["L", "M", "S"],
+        color: ["blue", "black", "white"],
+        material: "scarlet",
+        quantity: 100,
+        sku: "D2300-3-2-4",
+        imageUrl: ["/product/9.jpg", "/product/9-2.jpg", "/product/9-3.jpg"],
+      },
+    ],
+  },
 ];
 
 export default productData;
