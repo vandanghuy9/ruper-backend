@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const productSchema = new Schema({
   name: {
@@ -39,6 +39,27 @@ const productSchema = new Schema({
   },
   stocks: [{}],
   tags: [String],
+  comment: [
+    {
+      user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      content: {
+        type: String,
+        required: true,
+      },
+      rating: {
+        type: Number,
+        required: true,
+      },
+      date: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
 const Product = model("Product", productSchema);
