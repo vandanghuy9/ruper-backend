@@ -1,5 +1,26 @@
 import { Schema, model } from "mongoose";
-
+const productInStockSchema = new Schema({
+  color: {
+    type: String,
+    required: false,
+  },
+  size: {
+    type: String,
+    required: false,
+  },
+  material: {
+    type: String,
+    required: false,
+  },
+  quantity: {
+    type: Number,
+    required: false,
+  },
+  imageUrl: {
+    type: [String],
+    required: true,
+  },
+});
 const productSchema = new Schema({
   name: {
     type: String,
@@ -15,10 +36,6 @@ const productSchema = new Schema({
   },
   children: {
     type: String,
-    required: true,
-  },
-  imageUrl: {
-    type: [String],
     required: true,
   },
   originalPrice: {
@@ -37,8 +54,16 @@ const productSchema = new Schema({
     type: String,
     required: false,
   },
-  stocks: [{}],
+  imageUrl: {
+    type: [String],
+    required: true,
+  },
+  stocks: [productInStockSchema],
   tags: [String],
+  sku: {
+    type: String,
+    required: false,
+  },
   comment: [
     {
       user: {
