@@ -1,6 +1,7 @@
 const productData = [
   {
     name: "Zunkel Schwarz",
+    brand: "Blast",
     description:
       "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dicta ad culpa quas nam minima odit, amet autem, iure harum nisi assumenda vitae ut maxime, id porro veritatis similique? Blanditiis, obcaecati",
     parent: "Furniture",
@@ -37,9 +38,10 @@ const productData = [
   },
   {
     name: "Namaste Vase",
+    brand: "Minimal",
     description:
       "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dicta ad culpa quas nam minima odit, amet autem, iure harum nisi assumenda vitae ut maxime, id porro veritatis similique? Blanditiis, obcaecati",
-    parent: "Furniture",
+    parent: "Home Décor",
     children: "Vase",
     imageUrl: ["/product/2.jpg", "/product/2-2.jpg"],
     originalPrice: 80,
@@ -73,6 +75,7 @@ const productData = [
   },
   {
     name: "Chair Oak Matt Lacquered",
+    brand: "Money",
     description:
       "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dicta ad culpa quas nam minima odit, amet autem, iure harum nisi assumenda vitae ut maxime, id porro veritatis similique? Blanditiis, obcaecati",
     parent: "Furniture",
@@ -109,9 +112,10 @@ const productData = [
   },
   {
     name: "Amp Pendant Light Large",
+    brand: "Beat Sound",
     description:
       "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dicta ad culpa quas nam minima odit, amet autem, iure harum nisi assumenda vitae ut maxime, id porro veritatis similique? Blanditiis, obcaecati",
-    parent: "Furniture",
+    parent: "Lighting",
     children: "Table",
     imageUrl: ["/product/5.jpg", "/product/5-2.jpg"],
     originalPrice: 80,
@@ -144,6 +148,7 @@ const productData = [
   },
   {
     name: "Bora Armchair",
+    brand: "Red box",
     description:
       "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dicta ad culpa quas nam minima odit, amet autem, iure harum nisi assumenda vitae ut maxime, id porro veritatis similique? Blanditiis, obcaecati",
     parent: "Furniture",

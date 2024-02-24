@@ -2,7 +2,10 @@ import Product from "../models/Product.js";
 
 const getShowProducts = async (req, res) => {
   try {
-    const products = await Product.find({}, "name productClass imageUrl price discount");
+    const products = await Product.find(
+      {},
+      "name productClass imageUrl price discount parent children"
+    );
     return res.status(200).send(products);
   } catch (e) {
     return res.status(500).json({
@@ -25,7 +28,10 @@ const getProductById = async (req, res) => {
 
 const getRelatedProducts = async (req, res) => {
   try {
-    const products = await Product.find({}, "name productClass imageUrl price discount");
+    const products = await Product.find(
+      {},
+      "name productClass imageUrl price discount parent children"
+    );
     return res.status(200).send(products);
   } catch (e) {
     return res.status(500).json({
@@ -33,4 +39,19 @@ const getRelatedProducts = async (req, res) => {
     });
   }
 };
-export { getShowProducts, getProductById, getRelatedProducts };
+
+const getProductsByCategory = async (req, res) => {
+  try {
+    const category = req.query.category;
+    const products = await Product.find(
+      { parent: category },
+      "name productClass imageUrl price discount parent children"
+    );
+    return res.status(200).send(products);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message,
+    });
+  }
+};
+export { getShowProducts, getProductById, getRelatedProducts, getProductsByCategory };
