@@ -38,6 +38,10 @@ const productSchema = new Schema({
     type: String,
     required: true,
   },
+  keyword: {
+    type: String,
+    required: true,
+  },
   children: {
     type: String,
     required: true,
