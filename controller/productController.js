@@ -6,7 +6,6 @@ const getShowProducts = async (req, res) => {
       {},
       "name productClass imageUrl price discount parent children brand description comment"
     );
-    console.log(products);
     return res.status(200).send(products);
   } catch (e) {
     return res.status(500).json({
@@ -48,6 +47,10 @@ const getProductsByCategory = async (req, res) => {
     const price = req.query?.price;
     const size = req.query?.size;
     const sort = req.query?.sort;
+    const page = req.query?.page || 1;
+    const limit = req.query?.limit || 7;
+    const offset = (page - 1) * limit;
+    // console.log(category, brand, price, size, sort);
     let query = {};
     if (category) {
       query.keyword = category;
@@ -74,16 +77,21 @@ const getProductsByCategory = async (req, res) => {
     }
     let products = await Product.find(
       query,
-      "name productClass imageUrl price discount parent children brand description comment",
+      "name productClass imageUrl price discount parent children brand description comment stocks",
       sortOption
-    );
+    )
+      .skip(offset)
+      .limit(limit)
+      .exec();
     if (price) {
       products = products.filter((item) => (item.price * item.discount) / 100 <= price);
     }
     if (size) {
       products = products.filter((item) => item.stocks.find((i) => i.size === size) !== null);
     }
-    return res.status(200).send([...products]);
+    const totalItems = await Product.countDocuments({});
+    const totalPages = Math.ceil(totalItems / limit);
+    return res.status(200).json({ products, totalItems, totalPages, page });
   } catch (e) {
     return res.status(500).json({
       message: e.message,
