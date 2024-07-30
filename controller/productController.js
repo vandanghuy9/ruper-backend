@@ -48,7 +48,7 @@ const getProductsByCategory = async (req, res) => {
     const size = req.query?.size;
     const sort = req.query?.sort;
     const page = req.query?.page || 1;
-    const limit = req.query?.limit || 7;
+    const limit = req.query?.limit || 6;
     const offset = (page - 1) * limit;
     // console.log(category, brand, price, size, sort);
     let query = {};
@@ -112,10 +112,34 @@ const getFeatureProducts = async (req, res) => {
     });
   }
 };
+
+const getCompareProducts = async (req, res) => {
+  try {
+    const productId = req?.query?.product;
+    console.log("product:" + productId);
+    const product = await Product.findById(productId);
+    if (!product) {
+      return []; // Or handle error appropriately
+    }
+
+    const similarProducts = await Product.find({
+      _id: { $ne: productId }, // Exclude the input product
+      parent: product.parent,
+      children: product.children,
+    }).limit(2);
+    return res.status(200).send([product, ...similarProducts]);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message,
+    });
+  }
+};
+
 export {
   getShowProducts,
   getProductById,
   getRelatedProducts,
   getProductsByCategory,
   getFeatureProducts,
+  getCompareProducts,
 };

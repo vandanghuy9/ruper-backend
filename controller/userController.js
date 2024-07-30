@@ -7,7 +7,7 @@ const { hashSync, compareSync } = bcrypt;
 const login = async (req, res) => {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ name: username });
+    const user = await User.findOne({ name: username }).populate("wishlist.product");
     if (user && password) {
       if (compareSync(password, user.password)) {
         const token = signInToken(user);
@@ -32,13 +32,17 @@ const getWishListByUserId = async (req, res) => {
     const user = await User.findById(_id).populate("wishlist.product");
     if (user) {
       const { wishlist } = user;
-      console.log("wish list:" + user);
+      console.log("Wish list: " + wishlist);
       return res.status(200).send(wishlist);
     }
     return res.status(401).send({
       message: "Invalid user!",
     });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
 };
 const checkValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
@@ -54,14 +58,50 @@ const addProductToWishList = async (req, res) => {
 
     const user = await User.findById(_id);
     if (user) {
-      const d = new Date();
-      user?.wishlist?.push({ product, date: d.toDateString() });
+      let d = new Date();
+      const offset = d.getTimezoneOffset();
+      d = new Date(d.getTime() - offset * 60 * 1000);
+      let date = d.toDateString().split(" ");
+      const day = date.shift();
+      user?.wishlist?.push({ product, date: date.toString().replaceAll(",", " ") });
       await user.save();
       return res.status(200).json({ message: "Add to wishlist successfully" });
     }
     return res.status(401).send({
       message: "Invalid user!",
     });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
 };
-export { login, getWishListByUserId, addProductToWishList };
+
+const removeProductFromWishList = async (req, res) => {
+  try {
+    const { product } = req.body;
+    const { _id } = req.user;
+    if (!checkValidObjectId(_id) || !checkValidObjectId(product)) {
+      return res.status(400).send("Invalid user or product ID");
+    }
+
+    const user = await User.findById(_id);
+    if (user) {
+      user.wishlist = user?.wishlist?.filter(
+        (item) => item.product.toString() !== product.toString()
+      );
+      await user.save();
+      return res
+        .status(200)
+        .json({ message: "Deleted from wishlist successfully", wishlist: user.wishlist });
+    }
+    return res.status(401).send({
+      message: "Invalid user!",
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
+};
+export { login, getWishListByUserId, addProductToWishList, removeProductFromWishList };
