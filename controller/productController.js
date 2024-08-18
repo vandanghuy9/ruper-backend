@@ -116,7 +116,6 @@ const getFeatureProducts = async (req, res) => {
 const getCompareProducts = async (req, res) => {
   try {
     const productId = req?.query?.product;
-    console.log("product:" + productId);
     const product = await Product.findById(productId);
     if (!product) {
       return []; // Or handle error appropriately
