@@ -84,10 +84,14 @@ const getProductsByCategory = async (req, res) => {
       .limit(limit)
       .exec();
     if (price) {
-      products = products.filter((item) => (item.price * item.discount) / 100 <= price);
+      products = products.filter(
+        (item) => (item.price * item.discount) / 100 <= price
+      );
     }
     if (size) {
-      products = products.filter((item) => item.stocks.find((i) => i.size === size) !== null);
+      products = products.filter(
+        (item) => item.stocks.find((i) => i.size === size) !== null
+      );
     }
     const totalItems = await Product.countDocuments({});
     const totalPages = Math.ceil(totalItems / limit);
