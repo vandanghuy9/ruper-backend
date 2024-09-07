@@ -6,6 +6,7 @@ import {
   getProductsByCategory,
   getFeatureProducts,
   getCompareProducts,
+  saveProductReviews,
 } from "../controller/productController.js";
 const router = express.Router();
 router.get("/show", getShowProducts);
@@ -16,5 +17,5 @@ router.get("/compare", getCompareProducts);
 router.get("/:_id", getProductById);
 
 router.get("/related/:_id", getRelatedProducts);
-
+router.post("/reviews", saveProductReviews);
 export default router;

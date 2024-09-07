@@ -21,6 +21,21 @@ const productInStockSchema = new Schema({
     required: true,
   },
 });
+
+const reviewSchema = new Schema({
+  author: {
+    type: String,
+  },
+  email: {
+    type: String,
+  },
+  comment: {
+    type: String,
+  },
+  rating: {
+    type: Number,
+  },
+});
 const productSchema = new Schema({
   name: {
     type: String,
@@ -72,27 +87,7 @@ const productSchema = new Schema({
     type: String,
     required: false,
   },
-  comment: [
-    {
-      user: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-      },
-      content: {
-        type: String,
-        required: true,
-      },
-      rating: {
-        type: Number,
-        required: true,
-      },
-      date: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
+  comment: [reviewSchema],
 });
 const Product = model("Product", productSchema);
 export default Product;

@@ -13,6 +13,7 @@ import userRouter from "./routes/userRoutes.js";
 import wishListRouter from "./routes/wishListRoutes.js";
 import { isAuth } from "./config/auth.js";
 import blogRoutes from "./routes/blogRoutes.js";
+import orderRouter from "./routes/orderRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -26,6 +27,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/user", userRouter);
 app.use("/api/blog", blogRoutes);
 app.use("/api/wishlist", isAuth, wishListRouter);
+app.use("/api/order", isAuth, orderRouter);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);

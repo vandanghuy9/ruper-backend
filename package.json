@@ -30,6 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0",
     "mongoose-paginate-v2": "^1.8.2",
+    "mongoose-sequence": "^6.0.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

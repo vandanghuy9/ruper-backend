@@ -12,6 +12,59 @@ const UserWishListSchema = new Schema({
 });
 
 const UserSchema = new Schema({
+  firstName: {
+    type: String,
+  },
+  lastName: {
+    type: String,
+  },
+  name: {
+    type: String,
+  },
+  billingAddress: {
+    country: {
+      type: String,
+      required: false,
+    },
+    address: {
+      type: String,
+      required: false,
+    },
+    apartment: {
+      type: String,
+      required: false,
+    },
+    city: {
+      type: String,
+      required: false,
+    },
+    state: {
+      type: String,
+      required: false,
+    },
+  },
+  shippingAddress: {
+    country: {
+      type: String,
+      required: false,
+    },
+    address: {
+      type: String,
+      required: false,
+    },
+    apartment: {
+      type: String,
+      required: false,
+    },
+    city: {
+      type: String,
+      required: false,
+    },
+    state: {
+      type: String,
+      required: false,
+    },
+  },
   email: {
     type: String,
     index: { unique: true },
@@ -20,7 +73,6 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
-  name: String,
   wishlist: [UserWishListSchema],
 });
 
