@@ -138,6 +138,49 @@ const getCompareProducts = async (req, res) => {
   }
 };
 
+const saveProductReviews = async (req, res) => {
+  try {
+    const { productId, author, email, comment, rating } = req?.body;
+    console.log(productId, author, email, comment, rating);
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(400).send({ message: "Can't find product" }); // Or handle error appropriately
+    }
+
+    if (product?.comment !== undefined) {
+      const reviews = product?.comment;
+      const currentRating = product?.rating;
+      const updatedProduct = await Product.updateOne(
+        {
+          _id: productId,
+        },
+        {
+          $push: { comment: { author, email, comment, rating } },
+        },
+        { new: true, upsert: true, multi: true }
+      );
+      console.log(updatedProduct);
+      return res.status(200).json({ message: "Thank you for your review" });
+    } else {
+      const updatedProduct = await Product.updateOne(
+        {
+          _id: productId,
+        },
+        {
+          $push: { comment: { author, email, comment, rating } },
+        },
+        { new: true, upsert: true, multi: true }
+      );
+
+      return res.status(200).json({ message: "Thank you for your review" });
+    }
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message,
+    });
+  }
+};
+
 export {
   getShowProducts,
   getProductById,
@@ -145,4 +188,5 @@ export {
   getProductsByCategory,
   getFeatureProducts,
   getCompareProducts,
+  saveProductReviews,
 };

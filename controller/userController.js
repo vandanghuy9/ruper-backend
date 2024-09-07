@@ -3,11 +3,13 @@ import Product from "../models/Product.js";
 import bcrypt from "bcryptjs";
 import { signInToken } from "../config/auth.js";
 import mongoose from "mongoose";
-const { hashSync, compareSync } = bcrypt;
+const { compareSync, hashSync } = bcrypt;
 const login = async (req, res) => {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ name: username }).populate("wishlist.product");
+    const user = await User.findOne({ name: username }).populate(
+      "wishlist.product"
+    );
     if (user && password) {
       if (compareSync(password, user.password)) {
         const token = signInToken(user);
@@ -32,7 +34,6 @@ const getWishListByUserId = async (req, res) => {
     const user = await User.findById(_id).populate("wishlist.product");
     if (user) {
       const { wishlist } = user;
-      console.log("Wish list: " + wishlist);
       return res.status(200).send(wishlist);
     }
     return res.status(401).send({
@@ -63,7 +64,10 @@ const addProductToWishList = async (req, res) => {
       d = new Date(d.getTime() - offset * 60 * 1000);
       let date = d.toDateString().split(" ");
       const day = date.shift();
-      user?.wishlist?.push({ product, date: date.toString().replaceAll(",", " ") });
+      user?.wishlist?.push({
+        product,
+        date: date.toString().replaceAll(",", " "),
+      });
       await user.save();
       return res.status(200).json({ message: "Add to wishlist successfully" });
     }
@@ -91,9 +95,10 @@ const removeProductFromWishList = async (req, res) => {
         (item) => item.product.toString() !== product.toString()
       );
       await user.save();
-      return res
-        .status(200)
-        .json({ message: "Deleted from wishlist successfully", wishlist: user.wishlist });
+      return res.status(200).json({
+        message: "Deleted from wishlist successfully",
+        wishlist: user.wishlist,
+      });
     }
     return res.status(401).send({
       message: "Invalid user!",
@@ -104,4 +109,115 @@ const removeProductFromWishList = async (req, res) => {
     });
   }
 };
-export { login, getWishListByUserId, addProductToWishList, removeProductFromWishList };
+
+const getUserAddress = async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const user = await User.findById(_id).lean();
+    if (user) {
+      const {
+        billingAddress,
+        shippingAddress,
+        name,
+        firstName,
+        lastName,
+        email,
+      } = user;
+      return res.status(200).send({
+        billingAddress,
+        shippingAddress,
+        name,
+        firstName,
+        lastName,
+        email,
+      });
+    }
+    return res.status(401).send({
+      message: "Invalid user!",
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
+};
+
+const updateUserInfo = async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      displayName,
+      email,
+      password,
+      newPassword,
+      confirmPassword,
+    } = req.body;
+    const { _id } = req.user;
+    console.log(_id);
+    if (!checkValidObjectId(_id)) {
+      return res.status(400).send("Invalid user");
+    }
+
+    const user = await User.findById(_id);
+    const list = await User.find({});
+    if (user) {
+      console.log("found");
+      if (firstName !== user.firstName) {
+        user.firstName = firstName;
+      }
+      if (lastName !== user.lastName) {
+        user.lastName = lastName;
+      }
+      if (displayName !== user.name) {
+        user.name = displayName;
+      }
+      if (email !== user.email) {
+        user.email = email;
+      }
+      if (newPassword !== "" && confirmPassword !== "") {
+        if (password !== "") {
+          return res.status(200).json({
+            ok: false,
+            message: "Please enter your current password",
+          });
+        }
+        if (!compareSync(password, user.password)) {
+          return res.status(200).json({
+            ok: false,
+            message: "Wrong password",
+          });
+        }
+        if (newPassword !== confirmPassword) {
+          return res.status(200).json({
+            ok: false,
+            message: "Wrong confirm password",
+          });
+        }
+        const hashedPassword = hashSync(newPassword);
+        user.password = hashedPassword;
+      }
+      await user.save();
+      return res.status(200).json({
+        ok: true,
+        message: "Update user successfully",
+      });
+    }
+    return res.status(401).send({
+      message: "Invalid user!",
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+    });
+  }
+};
+
+export {
+  login,
+  getWishListByUserId,
+  addProductToWishList,
+  removeProductFromWishList,
+  getUserAddress,
+  updateUserInfo,
+};

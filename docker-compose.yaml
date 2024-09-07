@@ -12,6 +12,8 @@ services:
     tty: true
     ports:
       - "5055:5055"
+    volumes:
+      - ./:/app
     command: sh -c "node seeder.js && npm start"
     depends_on:
       - mongodb
