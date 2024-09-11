@@ -1,7 +1,12 @@
 import Blog from "../models/Blog.js";
 const getShowBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({}, "title createdAt imageUrl comment category").limit(3).lean();
+    const blogs = await Blog.find(
+      {},
+      "title createdAt imageUrl comment category"
+    )
+      .limit(3)
+      .lean();
     return res.status(200).send(blogs);
   } catch (e) {
     return res.status(500).json({
@@ -56,7 +61,10 @@ const getBlogByCategory = async (req, res) => {
       const tagList = tags.split(",");
       query.tags = { $in: tagList };
     }
-    const blog = await Blog.find(query, "title createdAt imageUrl comment category")
+    const blog = await Blog.find(
+      query,
+      "title createdAt imageUrl comment category"
+    )
       .skip(offset)
       .limit(limit)
       .exec();
@@ -114,12 +122,11 @@ const getAllBlogTag = async (req, res) => {
 
 const saveBlogComment = async (req, res) => {
   try {
-    const { _id } = req?.params;
+    const { comment, userName, userEmail, userWebsite, _id } = req?.body;
     const blog = await Blog.findById(_id);
-    const { comment, userName, userEmail, userWebsite } = req?.body;
     blog.comment.push({ content: comment, userName, userEmail, userWebsite });
     await blog.save();
-    return res.status(200).json({ message: "Saved comment successfully" });
+    return res.status(200).json({ message: "Thank you for your reviews" });
   } catch (e) {
     return res.status(500).json({
       message: e.message,

@@ -1,7 +1,7 @@
 dotenv.config();
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-const { sign } = jwt;
+const { sign, verify } = jwt;
 export function signInToken(user) {
   return sign(
     { email: user.email, name: user?.name, _id: user?._id },
@@ -11,6 +11,22 @@ export function signInToken(user) {
     }
   );
 }
+
+export const tokenForVerify = (info) => {
+  return sign(
+    { email: info.email, password: info?.password },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "15m",
+    }
+  );
+};
+
+export const tokenForForgotPassword = (info) => {
+  return sign({ _id: info._id, email: info.email }, process.env.JWT_SECRET, {
+    expiresIn: 900,
+  });
+};
 
 export const isAuth = async (req, res, next) => {
   const { authorization } = await req.headers;
@@ -24,4 +40,11 @@ export const isAuth = async (req, res, next) => {
       message: error.message,
     });
   }
+};
+
+export const getUserInfoByToken = (token) => {
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  console.log("Decoded");
+  console.log(decoded);
+  return decoded;
 };
