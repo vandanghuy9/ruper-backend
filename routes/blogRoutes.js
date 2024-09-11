@@ -12,7 +12,7 @@ router.get("/show", getShowBlogs);
 router.get("/filter", getBlogByCategory);
 router.get("/categories", getAllBlogCategory);
 router.get("/tags", getAllBlogTag);
-router.post("/comments/:_id", saveBlogComment);
+router.post("/comments", saveBlogComment);
 router.get("/:_id", getBlogById);
 
 export default router;

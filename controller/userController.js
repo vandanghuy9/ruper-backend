@@ -1,21 +1,35 @@
 import User from "../models/User.js";
-import Product from "../models/Product.js";
+import {
+  sendVerifyEmail,
+  sendPasswordRecoverEmail,
+} from "../utils/mailer/sender.js";
 import bcrypt from "bcryptjs";
-import { signInToken } from "../config/auth.js";
+import {
+  signInToken,
+  tokenForVerify,
+  getUserInfoByToken,
+  tokenForForgotPassword,
+} from "../config/auth.js";
 import mongoose from "mongoose";
 const { compareSync, hashSync } = bcrypt;
 const login = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, email } = req.body;
   try {
-    const user = await User.findOne({ name: username }).populate(
-      "wishlist.product"
-    );
+    const user = await User.findOne({
+      $or: [{ name: username }, { email }],
+    }).populate("wishlist.product");
     if (user && password) {
       if (compareSync(password, user.password)) {
         const token = signInToken(user);
-        const { _id, name, email, wishlist } = user;
+        const { _id, email, wishlist } = user;
         console.log(user);
-        return res.status(200).send({ token, _id, name, email, wishlist });
+        return res.status(200).send({
+          token,
+          _id,
+          name: user.name ? user.name : user.email.split("@")[0],
+          email,
+          wishlist,
+        });
       }
     }
     return res.status(401).send({
@@ -212,7 +226,105 @@ const updateUserInfo = async (req, res) => {
     });
   }
 };
+const verifyEmailAddress = async (req, res) => {
+  const { email, password } = req?.body;
+  console.log(email, password);
+  const user = await User.findOne({ email });
+  if (user) {
+    console.log(user);
+    return res.status(403).send({ message: "This Email already Added!" });
+  }
+  // return res.send({ message: "Good" });
+  const token = tokenForVerify({ email, password });
+  try {
+    sendVerifyEmail({ email, token }, res);
+  } catch (error) {
+    return res.status(403).send({ message: error });
+  }
+};
 
+const register = async (req, res) => {
+  const { token } = req.body;
+  console.log(token);
+
+  try {
+    const { email, password } = getUserInfoByToken(token);
+    const hashedPassword = hashSync(password);
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+    });
+    await newUser.save();
+    return res
+      .status(201)
+      .send({ message: "Registered successfully, please login" });
+  } catch (e) {
+    return res
+      .status(401)
+      .send({ message: "Token Expired, Please try again!" });
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  const { userLogin } = req.body;
+  console.log(userLogin);
+  try {
+    const user = await User.findOne({
+      $or: [{ name: userLogin }, { email: userLogin }],
+    });
+    if (!user) {
+      return res.status(401).send({
+        message: "Your account can't be found !",
+      });
+    }
+    const token = tokenForForgotPassword({
+      email: user.email,
+      _id: user._id,
+    });
+    console.log(token);
+    sendPasswordRecoverEmail({ email: user.email, token }, res);
+  } catch (err) {
+    res.status(500).send({
+      message: err.message,
+    });
+  }
+};
+
+const recoverPassword = async (req, res) => {
+  const { token, newPassword, confirmPassword } = req.body;
+  console.log("recover token:" + token);
+  try {
+    const decoded = getUserInfoByToken(token.toString());
+    const { email, _id, ...rest } = decoded;
+    console.log(decoded);
+    // const hashedPassword = hashSync(password);
+    // const newUser = new User({
+    //   email,
+    //   password: hashedPassword,
+    // });
+    // await newUser.save();
+    console.log(rest);
+    const user = await User.findById(_id);
+    if (!user) {
+      return res.status(404).send({
+        message: "Your account can't be found !",
+      });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(403).send({
+        message: "New Password and Confirm Password do not match !",
+      });
+    }
+    const hashedPassword = hashSync(newPassword);
+    user.password = hashedPassword;
+    await user.save();
+    return res
+      .status(201)
+      .send({ message: "Change password successfully, please login again !" });
+  } catch (e) {
+    return res.status(401).send({ message: e.message });
+  }
+};
 export {
   login,
   getWishListByUserId,
@@ -220,4 +332,8 @@ export {
   removeProductFromWishList,
   getUserAddress,
   updateUserInfo,
+  verifyEmailAddress,
+  register,
+  forgotPassword,
+  recoverPassword,
 };
