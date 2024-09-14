@@ -1,5 +1,5 @@
 import Product from "../models/Product.js";
-
+import Blog from "../models/Blog.js";
 const getShowProducts = async (req, res) => {
   try {
     const products = await Product.find(
@@ -47,6 +47,7 @@ const getProductsByCategory = async (req, res) => {
     const price = req.query?.price;
     const size = req.query?.size;
     const sort = req.query?.sort;
+    const searchQuery = req?.query?.search;
     const page = req.query?.page || 1;
     const limit = req.query?.limit || 6;
     const offset = (page - 1) * limit;
@@ -58,6 +59,10 @@ const getProductsByCategory = async (req, res) => {
     if (brand) {
       query.brand = brand;
     }
+    if (searchQuery) {
+      query.name = { $regex: new RegExp(searchQuery, "i") };
+    }
+
     let sortOption = { sort: {} };
     switch (sort) {
       case "PRICE_LOW_TO_HIGH": {
@@ -75,6 +80,7 @@ const getProductsByCategory = async (req, res) => {
       default: {
       }
     }
+
     let products = await Product.find(
       query,
       "name productClass imageUrl price discount parent children brand description comment stocks",
@@ -181,6 +187,33 @@ const saveProductReviews = async (req, res) => {
   }
 };
 
+const getSearchProductAndBlog = async (req, res) => {
+  try {
+    const searchQuery = req?.query?.search;
+    console.log(searchQuery);
+    const products = await Product.find(
+      {
+        $or: [
+          { keyword: { $regex: new RegExp(searchQuery, "i") } },
+          { name: { $regex: new RegExp(searchQuery, "i") } },
+        ],
+      },
+      "name productClass imageUrl price discount parent children comment"
+    ).lean();
+    const blogs = await Blog.find(
+      {
+        title: { $regex: new RegExp(searchQuery, "i") },
+      },
+      "title createdAt imageUrl comment category"
+    );
+    return res.status(200).send({ products, blogs });
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message,
+    });
+  }
+};
+
 export {
   getShowProducts,
   getProductById,
@@ -189,4 +222,5 @@ export {
   getFeatureProducts,
   getCompareProducts,
   saveProductReviews,
+  getSearchProductAndBlog,
 };
