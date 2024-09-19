@@ -4,7 +4,9 @@ import productData from "./utils/productData.js";
 import User from "./models/User.js";
 import users from "./utils/userData.js";
 import blogData from "./utils/blogData.js";
+import couponData from "./utils/couponData.js";
 import Blog from "./models/Blog.js";
+import Coupon from "./models/Coupon.js";
 connectDB();
 const seedData = async () => {
   try {
@@ -14,6 +16,8 @@ const seedData = async () => {
     await User.insertMany(users);
     await Blog.deleteMany();
     await Blog.insertMany(blogData);
+    await Coupon.deleteMany();
+    await Coupon.insertMany(couponData);
     console.log("data inserted successfully!");
     process.exit();
   } catch (e) {
