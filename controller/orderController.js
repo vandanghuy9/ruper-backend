@@ -12,11 +12,6 @@ const saveCustomerOrder = async (req, res) => {
       isShippingSelected,
     } = req.body;
     const user = req.user;
-    const cartItems = cart?.map((item) => ({
-      productId: item?.id,
-      stockId: item.productId,
-      quantity: item.quantity,
-    }));
     const {
       firstName: billingFirstName,
       lastName: billingLastName,
@@ -28,9 +23,10 @@ const saveCustomerOrder = async (req, res) => {
       ...shippingInfo
     } = userInfo.shippingAddress;
     const shippingCost = calculateShippingFee(subTotal, shippingOption);
+    console.log();
     const order = new Order({
       user: user._id,
-      cart: cartItems,
+      cart: cart,
       userInfo: {
         billingAddress: {
           name: `${billingFirstName} ${billingLastName}`,
@@ -52,7 +48,7 @@ const saveCustomerOrder = async (req, res) => {
       };
     }
     await order.save();
-    handleSaveProductQuantity(cartItems);
+    handleSaveProductQuantity(cart);
     return res.status(201).json({ message: "Saved order successfully" });
   } catch (error) {
     return res.status(500).json({
@@ -74,7 +70,22 @@ const getCustomerOrder = async (req, res) => {
   }
 };
 const calculateShippingFee = (subTotal, shippingOption) => {
-  return subTotal * 0.2;
+  const shippingOptionList = [
+    {
+      label: "Free shipping",
+      value: "free_shipping",
+      fee: 0,
+    },
+    {
+      label: "Flat rate",
+      value: "flat_rate",
+      fee: 20,
+    },
+  ];
+  const chosenOption = shippingOptionList.find(
+    (item) => item.value === shippingOption
+  );
+  return chosenOption.fee;
 };
 
 const handleSaveProductQuantity = async (cartItems) => {
@@ -94,4 +105,19 @@ const handleSaveProductQuantity = async (cartItems) => {
     );
   }
 };
-export { saveCustomerOrder, getCustomerOrder };
+
+const getOrderById = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const order = await Order.findById(_id).lean();
+    if (!order) {
+      return res.status(403).send({ message: "Can't find your order" });
+    }
+    return res.status(200).json(order);
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+export { saveCustomerOrder, getCustomerOrder, getOrderById };
