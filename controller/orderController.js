@@ -1,5 +1,9 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import dotenv from "dotenv";
+import Stripe from "stripe";
+const stripe = new Stripe(`${process.env.SECRET_STRIPE_KEY}`);
+dotenv.config();
 const saveCustomerOrder = async (req, res) => {
   try {
     const {
@@ -10,6 +14,8 @@ const saveCustomerOrder = async (req, res) => {
       shippingOption,
       paymentMethod,
       isShippingSelected,
+      discountValue,
+      discountType,
     } = req.body;
     const user = req.user;
     const {
@@ -23,7 +29,6 @@ const saveCustomerOrder = async (req, res) => {
       ...shippingInfo
     } = userInfo.shippingAddress;
     const shippingCost = calculateShippingFee(subTotal, shippingOption);
-    console.log();
     const order = new Order({
       user: user._id,
       cart: cart,
@@ -35,11 +40,20 @@ const saveCustomerOrder = async (req, res) => {
       },
       orderNote,
       subTotal,
-      total: subTotal + shippingCost,
+      total:
+        discountValue === 0
+          ? subTotal + shippingCost
+          : discountType === "percentage"
+          ? subTotal - subTotal * discountValue + shippingCost
+          : subTotal - discountValue + shippingCost,
       shippingCost,
       shippingOption,
       paymentMethod,
       status: "Pending",
+      discount:
+        discountType.toLowerCase() === "percentage"
+          ? subTotal * discountValue
+          : discountValue,
     });
     if (isShippingSelected) {
       order.userInfo.shippingAddress = {
@@ -56,6 +70,186 @@ const saveCustomerOrder = async (req, res) => {
     });
   }
 };
+
+const handleCardPayment = async (req, res) => {
+  try {
+    const {
+      cart,
+      subTotal,
+      userInfo,
+      orderNote,
+      shippingOption,
+      paymentMethod,
+      isShippingSelected,
+      discountValue,
+      discountType,
+    } = req.body;
+    const {
+      firstName: billingFirstName,
+      lastName: billingLastName,
+      ...billingInfo
+    } = userInfo.billingAddress;
+    const {
+      firstName: shippingFirstName,
+      lastName: shippingLastName,
+      ...shippingInfo
+    } = userInfo.shippingAddress;
+    const shippingCost = calculateShippingFee(subTotal, shippingOption);
+
+    const items = cart.map((item) => ({
+      price_data: {
+        currency: `${process.env.CURRENCY}`,
+        product_data: {
+          name: item.name,
+          metadata: {
+            id: item.id,
+            productID: item.productID,
+            image: item.image,
+            color: item.color,
+            size: item.size,
+          },
+        },
+        unit_amount: item.price * 100,
+      },
+      quantity: item.quantity,
+    }));
+    const metadata = {
+      orderNote,
+      billingName: `${billingFirstName} ${billingLastName}`,
+      billingCompanyName: billingInfo.companyName,
+      billingCountry: billingInfo.country,
+      billingAddress: billingInfo.address,
+      billingApartment: billingInfo.apartment,
+      billingCity: billingInfo.city,
+      billingState: billingInfo.state,
+      billingZipCode: billingInfo.zipCode,
+      billingContact: billingInfo.contact,
+      billingEmail: billingInfo.email,
+      shippingName: `${shippingFirstName} ${shippingLastName}`,
+      shippingCompanyName: shippingInfo.companyName,
+      shippingCountry: shippingInfo.country,
+      shippingAddress: shippingInfo.address,
+      shippingApartment: shippingInfo.apartment,
+      shippingCity: shippingInfo.city,
+      shippingState: shippingInfo.state,
+      shippingZipCode: shippingInfo.zipCode,
+      shippingContact: shippingInfo.contact,
+      shippingEmail: shippingInfo.email,
+      shippingOption,
+      isShippingSelected,
+      discountValue,
+      discountType,
+    };
+    const session = await stripe.checkout.sessions.create({
+      line_items: items,
+      metadata,
+      mode: "payment",
+      success_url: `${process.env.STORE_URL}/checkout?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.STORE_URL}/checkout?canceled=true`,
+    });
+    return res.status(200).send(session);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message,
+    });
+  }
+};
+
+const saveCardPaymentOrder = async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    if (!sessionId) {
+      return res.status(400).json({
+        message: "Invalid payment",
+      });
+    }
+    const user = req.user;
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
+      expand: ["data.price.product"],
+    });
+    const { metadata } = session;
+    const cart = lineItems.data.map((item) => ({
+      id: item.price.product.metadata?.id,
+      productID: item.price.product.metadata?.productID,
+      color: item.price.product.metadata?.color,
+      size: item.price.product.metadata?.size,
+      image: item.price.product.metadata?.image,
+      name: item.description,
+      price: item.price.unit_amount / 100,
+      quantity: item.quantity,
+      itemTotal: item.amount_total / 100,
+    }));
+    const discountValue = session.metadata?.discountValue;
+    const discountType = session.metadata?.discountType;
+    const orderNote = session.metadata?.orderNote;
+    const subTotal = session.amount_subtotal / 100;
+    const shippingOption = session.metadata?.shippingOption;
+    const shippingCost = calculateShippingFee(subTotal, shippingOption);
+    const billingAddress = {
+      name: `${session.metadata?.billingName}`,
+      address: session.metadata?.billingAddress,
+      apartment: session.metadata?.billingApartment,
+      city: session.metadata?.billingCity,
+      companyName: session.metadata?.billingCompanyName,
+      contact: session.metadata?.billingContact,
+      country: session.metadata?.billingCountry,
+      email: session.metadata?.billingEmail,
+      state: session.metadata?.billingState,
+      zipCode: session.metadata?.billingZipCode,
+    };
+    const isShippingSelected = session.metadata?.isShippingSelected;
+    const order = new Order({
+      user: user._id,
+      cart,
+      userInfo: {
+        billingAddress,
+      },
+      orderNote,
+      subTotal,
+      total:
+        discountValue === 0
+          ? subTotal + shippingCost
+          : discountType === "percentage"
+          ? subTotal - subTotal * discountValue + shippingCost
+          : subTotal - discountValue + shippingCost,
+      shippingCost,
+      shippingOption,
+      discount:
+        discountType.toLowerCase() === "percentage"
+          ? subTotal * discountValue
+          : discountValue,
+      paymentMethod: "card",
+      status: "Pending",
+    });
+    if (isShippingSelected) {
+      const shippingAddress = {
+        name: `${session.metadata?.shippingName}`,
+        address: session.metadata?.shippingAddress,
+        apartment: session.metadata?.shippingApartment,
+        city: session.metadata?.shippingCity,
+        companyName: session.metadata?.shippingCompanyName,
+        contact: session.metadata?.shippingContact,
+        country: session.metadata?.shippingCountry,
+        email: session.metadata?.shippingEmail,
+        state: session.metadata?.shippingState,
+        zipCode: session.metadata?.shippingZipCode,
+      };
+      order.userInfo.shippingAddress = shippingAddress;
+    }
+    await order.save();
+    handleSaveProductQuantity(cart);
+    return res
+      .status(201)
+      .json({ success: true, message: "Saved order successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const getCustomerOrder = async (req, res) => {
   try {
     const user = req.user._id;
@@ -120,4 +314,10 @@ const getOrderById = async (req, res) => {
     });
   }
 };
-export { saveCustomerOrder, getCustomerOrder, getOrderById };
+export {
+  saveCustomerOrder,
+  getCustomerOrder,
+  getOrderById,
+  handleCardPayment,
+  saveCardPaymentOrder,
+};
