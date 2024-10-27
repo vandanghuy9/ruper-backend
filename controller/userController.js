@@ -22,7 +22,6 @@ const login = async (req, res) => {
       if (compareSync(password, user.password)) {
         const token = signInToken(user);
         const { _id, email, wishlist } = user;
-        console.log(user);
         return res.status(200).send({
           token,
           _id,
@@ -66,7 +65,6 @@ const addProductToWishList = async (req, res) => {
   try {
     const { product } = req.body;
     const { _id } = req.user;
-    console.log("product:" + product + "id " + _id);
     if (!checkValidObjectId(_id) || !checkValidObjectId(product)) {
       return res.status(400).send("Invalid user or product ID");
     }
@@ -168,7 +166,6 @@ const updateUserInfo = async (req, res) => {
       confirmPassword,
     } = req.body;
     const { _id } = req.user;
-    console.log(_id);
     if (!checkValidObjectId(_id)) {
       return res.status(400).send("Invalid user");
     }
@@ -176,7 +173,6 @@ const updateUserInfo = async (req, res) => {
     const user = await User.findById(_id);
     const list = await User.find({});
     if (user) {
-      console.log("found");
       if (firstName !== user.firstName) {
         user.firstName = firstName;
       }
@@ -228,13 +224,10 @@ const updateUserInfo = async (req, res) => {
 };
 const verifyEmailAddress = async (req, res) => {
   const { email, password } = req?.body;
-  console.log(email, password);
   const user = await User.findOne({ email });
   if (user) {
-    console.log(user);
     return res.status(403).send({ message: "This Email already Added!" });
   }
-  // return res.send({ message: "Good" });
   const token = tokenForVerify({ email, password });
   try {
     sendVerifyEmail({ email, token }, res);
@@ -245,8 +238,6 @@ const verifyEmailAddress = async (req, res) => {
 
 const register = async (req, res) => {
   const { token } = req.body;
-  console.log(token);
-
   try {
     const { email, password } = getUserInfoByToken(token);
     const hashedPassword = hashSync(password);
@@ -267,7 +258,6 @@ const register = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   const { userLogin } = req.body;
-  console.log(userLogin);
   try {
     const user = await User.findOne({
       $or: [{ name: userLogin }, { email: userLogin }],
@@ -281,7 +271,6 @@ const forgotPassword = async (req, res) => {
       email: user.email,
       _id: user._id,
     });
-    console.log(token);
     sendPasswordRecoverEmail({ email: user.email, token }, res);
   } catch (err) {
     res.status(500).send({
@@ -292,18 +281,9 @@ const forgotPassword = async (req, res) => {
 
 const recoverPassword = async (req, res) => {
   const { token, newPassword, confirmPassword } = req.body;
-  console.log("recover token:" + token);
   try {
     const decoded = getUserInfoByToken(token.toString());
     const { email, _id, ...rest } = decoded;
-    console.log(decoded);
-    // const hashedPassword = hashSync(password);
-    // const newUser = new User({
-    //   email,
-    //   password: hashedPassword,
-    // });
-    // await newUser.save();
-    console.log(rest);
     const user = await User.findById(_id);
     if (!user) {
       return res.status(404).send({

@@ -44,7 +44,5 @@ export const isAuth = async (req, res, next) => {
 
 export const getUserInfoByToken = (token) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  console.log("Decoded");
-  console.log(decoded);
   return decoded;
 };

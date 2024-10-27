@@ -51,7 +51,6 @@ const getProductsByCategory = async (req, res) => {
     const page = req.query?.page || 1;
     const limit = req.query?.limit || 6;
     const offset = (page - 1) * limit;
-    // console.log(category, brand, price, size, sort);
     let query = {};
     if (category) {
       query.keyword = category;
@@ -147,7 +146,6 @@ const getCompareProducts = async (req, res) => {
 const saveProductReviews = async (req, res) => {
   try {
     const { productId, author, email, comment, rating } = req?.body;
-    console.log(productId, author, email, comment, rating);
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(400).send({ message: "Can't find product" }); // Or handle error appropriately
@@ -165,7 +163,6 @@ const saveProductReviews = async (req, res) => {
         },
         { new: true, upsert: true, multi: true }
       );
-      console.log(updatedProduct);
       return res.status(200).json({ message: "Thank you for your review" });
     } else {
       const updatedProduct = await Product.updateOne(
@@ -190,7 +187,6 @@ const saveProductReviews = async (req, res) => {
 const getSearchProductAndBlog = async (req, res) => {
   try {
     const searchQuery = req?.query?.search;
-    console.log(searchQuery);
     const products = await Product.find(
       {
         $or: [
