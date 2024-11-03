@@ -23,7 +23,12 @@ connectDB();
 app.use(express.json());
 app.use(helmet());
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.STORE_URL,
+    optionsSuccessStatus: 200,
+  })
+);
 app.use("/api/products", productRoutes);
 app.use("/api/user", userRouter);
 app.use("/api/blog", blogRoutes);
