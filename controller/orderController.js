@@ -50,11 +50,12 @@ const saveCustomerOrder = async (req, res) => {
       shippingOption,
       paymentMethod,
       status: "Pending",
-      discount:
-        discountType.toLowerCase() === "percentage"
-          ? subTotal * discountValue
-          : discountValue,
+      discount: 0,
     });
+    if (discountType) {
+      order.discount =
+        discountType.toLowerCase() === "percentage" ? subTotal * discountValue : discountValue;
+    }
     if (isShippingSelected) {
       order.userInfo.shippingAddress = {
         name: `${shippingFirstName} ${shippingLastName}`,
@@ -216,9 +217,7 @@ const saveCardPaymentOrder = async (req, res) => {
       shippingCost,
       shippingOption,
       discount:
-        discountType.toLowerCase() === "percentage"
-          ? subTotal * discountValue
-          : discountValue,
+        discountType.toLowerCase() === "percentage" ? subTotal * discountValue : discountValue,
       paymentMethod: "card",
       status: "Pending",
     });
@@ -239,9 +238,7 @@ const saveCardPaymentOrder = async (req, res) => {
     }
     await order.save();
     handleSaveProductQuantity(cart);
-    return res
-      .status(201)
-      .json({ success: true, message: "Saved order successfully" });
+    return res.status(201).json({ success: true, message: "Saved order successfully" });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -276,9 +273,7 @@ const calculateShippingFee = (subTotal, shippingOption) => {
       fee: 20,
     },
   ];
-  const chosenOption = shippingOptionList.find(
-    (item) => item.value === shippingOption
-  );
+  const chosenOption = shippingOptionList.find((item) => item.value === shippingOption);
   return chosenOption.fee;
 };
 
