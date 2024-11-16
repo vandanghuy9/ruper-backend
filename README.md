@@ -1,3 +1,3 @@
-- Dán đường link mongodb vào BASE_URL trong file .env
-- chay file seeder bằng câu lệnh : node seeder.js
-- Cài đặt package bằng câu lệnh: npm i
+- Put your mongoDB URI connection in MONGO_URI .env
+- Seed data by running command : node seeder.js
+- Install package: npm i
